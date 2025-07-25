@@ -1,30 +1,29 @@
 FROM python:3.11-slim
 
-ENV PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DEFAULT_TIMEOUT=600
-
+# Arbeitsverzeichnis im Container
 WORKDIR /app
 
-# System-Abhängigkeiten installieren
+# Systemabhängigkeiten installieren (für PDF, Office, OCR)
 RUN apt-get update && apt-get install -y \
     libmagic1 \
     poppler-utils \
     unoconv \
     libreoffice \
     tesseract-ocr \
-    libgl1 \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Python-Abhängigkeiten installieren (CPU-only Torch + OCR + markitdown)
+# Installiere nur PyTorch-Komponenten über den CPU-Index
 RUN pip install --no-cache-dir --default-timeout=600 \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
-    easyocr \
-    markitdown[all] \
-    flask
+    torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/cpu
 
+# Installiere EasyOCR, MarkItDown (alle Formate), Flask
+RUN pip install --no-cache-dir --default-timeout=600 \
+    easyocr markitdown[all] flask
+
+# App-Code kopieren
 COPY app.py .
 
+# Startbefehl
 CMD ["python", "app.py"]
+
