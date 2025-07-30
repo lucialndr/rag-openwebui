@@ -1,0 +1,28 @@
+🔓 Domains zum Freigeben
+Standardmäßig nutzt Docker Hub und Docker Engine beim Herunterladen von Images verschiedene Domains. Laut aktueller Dokumentation solltest du die folgenden erlauben:
+
+Authentifizierung & Login
+
+auth.docker.io
+
+cdn.auth0.com
+
+login.docker.com
+
+auth.docker.com 
+
+
+Image-Download (Pull/Push):
+
+registry-1.docker.io
+
+production.cloudflare.docker.com
+
+docker-images-prod.6aa30f8b08e16409b46e0173d6de2f56.r2.cloudflarestorage.com 
+
+
+Docker Hub Webseite und API (optional, nur für Hub-Zugriffe oder CLI Login):
+
+hub.docker.com
+
+api.docker.com, desktop.docker.com, notify.bugsnag.com,  
