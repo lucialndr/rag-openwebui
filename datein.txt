@@ -1,0 +1,45 @@
+Das Storage System in Open WebUI funktioniert so, dass Chat-Daten und Datei-Uploads getrennt verwaltet werden.
+
+Chat-Löschung vs. Datei-Persistierung
+Wenn Sie eine Session/Chat im Interface löschen, werden nur die Chat-Metadaten und Nachrichten entfernt, aber hochgeladene Dateien bleiben im System bestehen. chats.py:908-926
+
+Die Chat-Löschung erfolgt über die delete_chat_by_id_and_user_id Funktion, die nur Chat-Einträge aus der Datenbank entfernt: chats.py:918-926
+
+Datei-Storage System
+Das Problem, das Sie beschreiben, ist ein bekanntes Issue. Laut dem Changelog wurde dies bereits adressiert: CHANGELOG.md:44
+
+Die Lösung implementiert eine Bereinigung, bei der beim Löschen von Dateien auch die zugehörigen Vektordaten entfernt werden. Dies verhindert, dass "verwaiste" Dateien im System verbleiben.
+
+API-Endpunkt /api/v1/files
+Der /api/v1/files Endpunkt zeigt alle im System gespeicherten Dateien an, unabhängig davon, ob die zugehörigen Chats noch existieren. Dies ist das erwartete Verhalten, da Dateien möglicherweise in mehreren Chats verwendet werden können.
+
+Archivierung vs. Löschung
+Das System unterscheidet zwischen Archivierung und vollständiger Löschung: index.ts:772-802
+
+Archivierte Chats können über eine separate Modal-Ansicht verwaltet werden: ArchivedChatsModal.svelte:1-60
+
+Notes
+
+Das Storage System ist so konzipiert, dass Dateien persistent bleiben, um Datenverlust zu vermeiden. Wenn Sie möchten, dass Dateien beim Chat-Löschen automatisch entfernt werden, müssten Sie dies über die Admin-Einstellungen oder direkt über die API verwalten. 
+
+
+Das sagt Chat GPT noch dazu:
+
+Wie funktioniert das Storage-System von Open WebUI?
+Speicherung von Chats und Dateien
+Chat-Inhalte (Nachrichten, Metadaten etc.) werden in einer relationalen Datenbank gespeichert (standardmäßig SQLite, alternativ via ENV konfigurierbar) – z. B. in /app/backend/data/webui.db 📁 
+
+
+Dateien (PDFs, Bilder etc.) werden physisch auf dem Filesystem oder in einem Storage-Provider (z. B. Local, S3) abgelegt – beispielsweise unter einem Upload-Verzeichnis im Container. Die Zuordnung erfolgt über Tabellen und Vector DB 
+
+
+Chat löschen ≠ Datei löschen
+Erwartetes Verhalten vs. Realität
+In der Benutzeroberfläche führt das Löschen eines Chats nicht automatisch zum Löschen der darin hochgeladenen Dateien.
+
+Chats selbst werden entfernt (ein Datensatz pro Chat in der DB), jedoch verwaiste Dateien bleiben erhalten – sie sind weiterhin über API-Endpunkte wie /api/v1/files sichtbar und persistiert. Das ist derzeit Standardverhalten, keine Konfigurationsoption zum automatischen Dateien­löschen vorhanden. 
+
+Bekanntes Issue:
+In der GitHub‑Diskussion #8875 wurde ein Feature-Request gestellt: Automatische Säuberung nicht mehr referenzierter Dateien nach Chat-Löschung mittels Hintergrundjob
+
+Nutze API-Endpunkte wie DELETE /api/v1/files/{id} oder DELETE /api/v1/files/all (Admin), um nicht mehr benötigte Dateien zu entfernen
